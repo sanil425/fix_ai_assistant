@@ -8,7 +8,7 @@ export default function App() {
   const [currentId, setCurrentId] = useState(null);
   const [prefill, setPrefill] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [version, setVersion] = useState("4.4");
+  const [version, setVersion] = useState(localStorage.getItem("fixVersion") || "4.4");
 
   // init
   useEffect(() => {
@@ -22,6 +22,8 @@ export default function App() {
       setCurrentId(existing[0].id);
     }
   }, []);
+  
+  useEffect(() => { localStorage.setItem("fixVersion", version); }, [version]);
 
   const current = currentId ? getChat(currentId) : null;
   const sync = () => setChats(loadChats());
@@ -80,13 +82,19 @@ export default function App() {
           <div className="left">
             <button className="toggle" onClick={() => setMobileOpen(true)}>☰</button>
             <div style={{ fontWeight: 600 }}>Chat</div>
+            <select value={version} onChange={e => setVersion(e.target.value)}>
+              <option value="4.0">FIX 4.0</option>
+              <option value="4.2">FIX 4.2</option>
+              <option value="4.4">FIX 4.4</option>
+              <option value="5.0">FIX 5.0</option>
+            </select>
           </div>
           <div style={{ opacity: .7, fontSize: 14 }}>FIX AI Assistant</div>
         </div>
 
         <div className="content">
           {current && (
-            <ChatPage messages={current.messages} onSend={onSend} prefill={prefill} />
+            <ChatPage messages={current.messages} onSend={onSend} prefill={prefill} version={version} />
           )}
         </div>
       </div>

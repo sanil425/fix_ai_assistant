@@ -23,7 +23,7 @@ export default function Sidebar({
       <div className="brand" style={{fontSize: "1.1rem", marginBottom: "24px"}}>FIX Knowledge Base</div>
 
       {/* Recent Chats Section */}
-      <details open className="sidebar-accordion">
+      <details defaultOpen={localStorage.getItem('sidebar_chats') !== 'false'} onToggle={e => localStorage.setItem('sidebar_chats', e.target.open)} className="sidebar-accordion">
         <summary className="accordion-summary">Recent Chats</summary>
         <div className="card list">
           <button onClick={onNewChat} style={{fontSize: "0.9rem"}}>＋ New chat</button>
@@ -46,7 +46,7 @@ export default function Sidebar({
       </details>
 
       {/* Sample Questions Section */}
-      <details open className="sidebar-accordion">
+      <details defaultOpen={localStorage.getItem('sidebar_questions') !== 'false'} onToggle={e => localStorage.setItem('sidebar_questions', e.target.open)} className="sidebar-accordion">
         <summary className="accordion-summary">Sample Questions</summary>
         <div className="card list">
           {samples.map((q) => (
@@ -56,7 +56,7 @@ export default function Sidebar({
       </details>
 
       {/* Official Resources Section */}
-      <details open={accordionState.resources} className="sidebar-accordion" onToggle={() => handleAccordionToggle("resources")}>
+      <details defaultOpen={localStorage.getItem('sidebar_resources') !== 'false'} onToggle={e => localStorage.setItem('sidebar_resources', e.target.open)} className="sidebar-accordion">
         <summary className="accordion-summary">Official Resources</summary>
         <div className="card list">
           {links.map((l) => (

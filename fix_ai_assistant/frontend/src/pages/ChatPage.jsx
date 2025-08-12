@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import ChatMessage from "../components/ChatMessage.jsx";
 import ChatInput from "../components/ChatInput.jsx";
 
-export default function ChatPage({ messages, onSend, prefill }) {
+export default function ChatPage({ messages, onSend, prefill, version }) {
   const boxRef = useRef(null);
 
   useEffect(() => {
