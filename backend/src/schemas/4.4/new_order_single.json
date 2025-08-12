@@ -1,0 +1,10 @@
+{
+  "version": "4.4",
+  "msgType": "D",
+  "name": "New Order - Single",
+  "required": ["8","9","35","34","49","56","52","11","55","54","38","40"],
+  "conditionals": [
+    { "if": { "40": "2" }, "thenRequired": ["44"] }
+  ],
+  "notes": "44 (Price) is required when OrdType=2 (Limit)."
+}

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import Sidebar from "./components/Sidebar.jsx";
 import ChatPage from "./pages/ChatPage.jsx";
 import { loadChats, createChat, updateChat, getChat } from "./state/chatStore.js";
+import { askBackend } from "./lib/api.js";
 
 export default function App() {
   const [chats, setChats] = useState([]);
@@ -25,6 +26,16 @@ export default function App() {
   
   useEffect(() => { localStorage.setItem("fixVersion", version); }, [version]);
 
+  // Development health check
+  useEffect(() => {
+    if (import.meta.env.DEV) {
+      fetch((import.meta.env.VITE_API_BASE || "http://localhost:4000") + "/health")
+        .then(r => r.json())
+        .then(j => console.log("[health]", j))
+        .catch(e => console.warn("[health] failed", e));
+    }
+  }, []);
+
   const current = currentId ? getChat(currentId) : null;
   const sync = () => setChats(loadChats());
 
@@ -47,19 +58,56 @@ export default function App() {
     setMobileOpen(false);
   };
 
-  const onSend = (text) => {
+  const onSend = async (text) => {
+    // 1) Add user message immediately
     updateChat(currentId, (c) => {
       const title = c.title === "New chat" ? text.slice(0, 40) : c.title;
       return { ...c, title, messages: [...c.messages, { role: "user", content: text, ts: Date.now() }] };
     });
     sync();
-    setTimeout(() => {
-      updateChat(currentId, (c) => ({
-        ...c,
-        messages: [...c.messages, { role: "assistant", content: `Placeholder answer.\n\nYou asked: "${text}".`, ts: Date.now() }]
-      }));
-      sync();
-    }, 350);
+    
+    // 2) Add typing indicator
+    updateChat(currentId, (c) => ({
+      ...c,
+      messages: [...c.messages, { role: "assistant", content: "…", typing: true, ts: Date.now() }]
+    }));
+    sync();
+
+    // 3) Try backend first
+    console.log("[Chat] POST /ask …");
+    const data = await askBackend({ query: text, version });
+
+    // 4) Replace typing with backend response or fallback
+    updateChat(currentId, (c) => {
+      const withoutTyping = c.messages.filter(x => !x.typing);
+      if (data) {
+        return {
+          ...c,
+          messages: [
+            ...withoutTyping,
+            {
+              role: "assistant",
+              content: `${data.answer}\n\n_Sources:_ ${data.citations.map(c => c.title).join(", ")}`,
+              ts: Date.now()
+            }
+          ]
+        };
+      } else {
+        // Fallback to placeholder
+        return {
+          ...c,
+          messages: [
+            ...withoutTyping,
+            {
+              role: "assistant",
+              content: `Placeholder answer (local fallback). You asked: "${text}". (FIX ${version})`,
+              ts: Date.now()
+            }
+          ]
+        };
+      }
+    });
+    sync();
   };
 
   return (
