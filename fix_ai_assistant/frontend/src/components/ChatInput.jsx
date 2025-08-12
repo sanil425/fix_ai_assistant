@@ -1,0 +1,25 @@
+import { useState } from "react";
+
+export default function ChatInput({ onSend, initialText }) {
+  const [text, setText] = useState(initialText || "");
+  const submit = (e) => {
+    e.preventDefault();
+    const v = text.trim();
+    if (!v) return;
+    onSend(v);
+    setText("");
+  };
+  return (
+    <div className="inputbar">
+      <form className="form" onSubmit={submit}>
+        <input
+          className="textbox"
+          placeholder="Ask about FIX…"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+        />
+        <button className="send" type="submit">Send</button>
+      </form>
+    </div>
+  );
+}
