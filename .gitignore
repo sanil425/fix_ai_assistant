@@ -1,20 +1,9 @@
-backend/.env
-backend/.env
 
+# logs
 # secrets
-.env
 **/.env
 *.env
-# logs
 *.log
-backend/server.log
-backend/.env
-backend/.env
-
-# secrets
 .env
-**/.env
-*.env
-# logs
-*.log
+backend/.env
 backend/server.log
