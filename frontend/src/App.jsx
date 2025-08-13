@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
 import Sidebar from "./components/Sidebar.jsx";
 import ChatPage from "./pages/ChatPage.jsx";
+import ToolsPanel from "./components/ToolsPanel.jsx";
 import { loadChats, createChat, updateChat, getChat } from "./state/chatStore.js";
 import { askBackend } from "./lib/api.js";
+import "./styles/tools.css";
 
 export default function App() {
   const [chats, setChats] = useState([]);
   const [currentId, setCurrentId] = useState(null);
   const [prefill, setPrefill] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [toolsOpen, setToolsOpen] = useState(false);
   const [version, setVersion] = useState(localStorage.getItem("fixVersion") || "4.4");
 
   // init
@@ -138,6 +141,9 @@ export default function App() {
             </select>
           </div>
           <div style={{ opacity: .7, fontSize: 14 }}>FIX AI Assistant</div>
+          <div className="right">
+            <button onClick={() => setToolsOpen(true)}>Tools</button>
+          </div>
         </div>
 
         <div className="content">
@@ -162,6 +168,9 @@ export default function App() {
           </aside>
         </div>
       )}
+
+      {/* Tools panel */}
+      <ToolsPanel open={toolsOpen} onClose={() => setToolsOpen(false)} version={version} />
     </div>
   );
 }
