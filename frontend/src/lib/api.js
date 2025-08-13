@@ -1,22 +1,30 @@
 
-const API_BASE = import.meta.env?.VITE_API_BASE || "http://localhost:4000";
+// src/lib/api.js
+export async function askAI({ userPrompt, fixVersion = "4.4", draftFix = null }) {
+  const base = import.meta.env?.VITE_API_BASE || "http://localhost:8000";
+  const url = `${base.replace(/\/$/, "")}/api/ask`;
+  const resp = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      user_prompt: userPrompt,
+      fix_version: fixVersion,
+      draft_fix: draftFix,
+    }),
+  });
+  if (!resp.ok) {
+    const text = await resp.text();
+    throw new Error(`Ask failed: ${resp.status} ${text}`);
+  }
+  return resp.json();
+}
 
+// Legacy function - now calls FastAPI instead of old Express backend
 export async function askBackend({ query, version }) {
-  const controller = new AbortController();
-  const t = setTimeout(() => controller.abort(), 12000);
   try {
-    const r = await fetch(`${API_BASE}/ask`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query, version }),
-      signal: controller.signal
-    });
-    clearTimeout(t);
-    if (!r.ok) throw new Error(`status ${r.status}`);
-    return await r.json(); // { answer, citations, used_version }
+    return await askAI({ userPrompt: query, fixVersion: version });
   } catch (e) {
-    clearTimeout(t);
-    console.warn("[askBackend] falling back:", e?.message || e);
+    console.warn("[askBackend] FastAPI call failed:", e?.message || e);
     return null; // triggers UI fallback
   }
 }

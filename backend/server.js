@@ -1,3 +1,4 @@
+// DISABLED: Using FastAPI backend on :8000 for AI. Do not run this server.
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";

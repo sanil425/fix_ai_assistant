@@ -1,59 +1,52 @@
 import { useEffect, useState } from "react";
 import Sidebar from "./components/Sidebar.jsx";
 import ChatPage from "./pages/ChatPage.jsx";
-import ToolsPanel from "./components/ToolsPanel.jsx";
-import { loadChats, createChat, updateChat, getChat } from "./state/chatStore.js";
-import { askBackend } from "./lib/api.js";
-import "./styles/tools.css";
+import BottomToolbar from "./components/BottomToolbar";
+import "./styles/design.css";
+import "./styles/bottom-toolbar.css";
+// TEMP: AI disabled for demo; re-enable by restoring ChatDock and askAI usage
+// import ChatDock from "./components/ChatDock.jsx";
+// import { loadChats, createChat, updateChat, getChat } from "./state/chatStore.js";
+// import { askBackend } from "./lib/api.js";
 
 export default function App() {
+  const [version, setVersion] = useState(localStorage.getItem("fixVersion") || "4.4");
   const [chats, setChats] = useState([]);
   const [currentId, setCurrentId] = useState(null);
   const [prefill, setPrefill] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [toolsOpen, setToolsOpen] = useState(false);
-  const [version, setVersion] = useState(localStorage.getItem("fixVersion") || "4.4");
-
-  // init
-  useEffect(() => {
-    const existing = loadChats();
-    if (existing.length === 0) {
-      const first = createChat();
-      setChats(loadChats());
-      setCurrentId(first.id);
-    } else {
-      setChats(existing);
-      setCurrentId(existing[0].id);
-    }
-  }, []);
   
   useEffect(() => { localStorage.setItem("fixVersion", version); }, [version]);
 
-  // Development health check
+  // init
   useEffect(() => {
-    if (import.meta.env.DEV) {
-      fetch((import.meta.env.VITE_API_BASE || "http://localhost:4000") + "/health")
-        .then(r => r.json())
-        .then(j => console.log("[health]", j))
-        .catch(e => console.warn("[health] failed", e));
+    // Create a default chat if none exist
+    if (chats.length === 0) {
+      const first = { id: "1", title: "New chat", messages: [] };
+      setChats([first]);
+      setCurrentId(first.id);
     }
-  }, []);
-
-  const current = currentId ? getChat(currentId) : null;
-  const sync = () => setChats(loadChats());
-
+  }, [chats.length]);
+  
+  const [current, setCurrent] = useState(null);
+  
+  // Update current chat when chats or currentId changes
+  useEffect(() => {
+    const found = chats.find(c => c.id === currentId);
+    setCurrent(found);
+  }, [chats, currentId]);
+  
   const onNewChat = () => {
-    const c = createChat();
+    const c = { id: Date.now().toString(), title: "New chat", messages: [] };
+    setChats([c, ...chats]);
     setCurrentId(c.id);
     setPrefill("");
-    sync();
   };
 
   const onSelectChat = (id) => {
     setCurrentId(id);
     setPrefill("");
     setMobileOpen(false);
-    sync();
   };
 
   const onPickSample = (q) => {
@@ -62,102 +55,48 @@ export default function App() {
   };
 
   const onSend = async (text) => {
+    if (!current) return;
+    
     // 1) Add user message immediately
-    updateChat(currentId, (c) => {
-      const title = c.title === "New chat" ? text.slice(0, 40) : c.title;
-      return { ...c, title, messages: [...c.messages, { role: "user", content: text, ts: Date.now() }] };
-    });
-    sync();
+    const updatedChats = chats.map(c => 
+      c.id === currentId 
+        ? { ...c, title: c.title === "New chat" ? text.slice(0, 40) : c.title, messages: [...c.messages, { role: "user", content: text, ts: Date.now() }] }
+        : c
+    );
+    setChats(updatedChats);
     
     // 2) Add typing indicator
-    updateChat(currentId, (c) => ({
-      ...c,
-      messages: [...c.messages, { role: "assistant", content: "…", typing: true, ts: Date.now() }]
-    }));
-    sync();
+    const withTyping = updatedChats.map(c => 
+      c.id === currentId 
+        ? { ...c, messages: [...c.messages, { role: "assistant", content: "…", typing: true, ts: Date.now() }] }
+        : c
+    );
+    setChats(withTyping);
 
-    // 3) Try backend first
-    console.log("[Chat] POST /ask …");
-    const data = await askBackend({ query: text, version });
-
-    // 4) Replace typing with backend response or fallback
-    updateChat(currentId, (c) => {
-      const withoutTyping = c.messages.filter(x => !x.typing);
-      if (data) {
-        return {
-          ...c,
-          messages: [
-            ...withoutTyping,
-            {
-              role: "assistant",
-              content: `${data.answer}\n\n_Sources:_ ${data.citations.map(c => c.title).join(", ")}`,
-              ts: Date.now()
-            }
-          ]
-        };
-      } else {
-        // Fallback to placeholder
-        return {
-          ...c,
-          messages: [
-            ...withoutTyping,
-            {
-              role: "assistant",
-              content: `Placeholder answer (local fallback). You asked: "${text}". (FIX ${version})`,
-              ts: Date.now()
-            }
-          ]
-        };
-      }
-    });
-    sync();
+    // 3) Replace typing with canned reply after delay
+    setTimeout(() => {
+      const canned = [
+        "Demo mode: no AI connected. This is a placeholder answer.",
+        "This is a placeholder response. Scroll down to use the FIX toolbar.",
+        "Static response (offline)."
+      ];
+      const reply = canned[Math.floor(Math.random() * canned.length)];
+      
+      setChats(prevChats => prevChats.map(c => 
+        c.id === currentId 
+          ? { ...c, messages: c.messages.filter(m => !m.typing).concat([{ role: "assistant", content: reply, ts: Date.now() }]) }
+          : c
+      ));
+    }, 300);
   };
 
   return (
-    <div className="container">
-      {/* Desktop sidebar (left) */}
-      <aside className="sidebar desktop">
-        <div className="brand">FIX Knowledge Base</div>
-        <Sidebar
-          chats={chats}
-          currentChatId={currentId}
-          onSelectChat={onSelectChat}
-          onNewChat={onNewChat}
-          onPickSample={onPickSample}
-        />
-      </aside>
-
-      {/* Main content */}
-      <div className="main">
-        <div className="header">
-          <div className="left">
-            <button className="toggle" onClick={() => setMobileOpen(true)}>☰</button>
-            <div style={{ fontWeight: 600 }}>Chat</div>
-            <select value={version} onChange={e => setVersion(e.target.value)}>
-              <option value="4.0">FIX 4.0</option>
-              <option value="4.2">FIX 4.2</option>
-              <option value="4.4">FIX 4.4</option>
-              <option value="5.0">FIX 5.0</option>
-            </select>
-          </div>
-          <div style={{ opacity: .7, fontSize: 14 }}>FIX AI Assistant</div>
-          <div className="right">
-            <button onClick={() => setToolsOpen(true)}>Tools</button>
-          </div>
-        </div>
-
-        <div className="content">
-          {current && (
-            <ChatPage messages={current.messages} onSend={onSend} prefill={prefill} version={version} />
-          )}
-        </div>
-      </div>
-
-      {/* Mobile slide-in sidebar */}
-      {mobileOpen && (
-        <div className="mobile-overlay" onClick={() => setMobileOpen(false)}>
-          <aside className="sidebar mobile" onClick={(e) => e.stopPropagation()}>
-            <div className="brand">FIX Knowledge Base</div>
+    <div style={{ display: "flex", height: "100vh" }}>
+      {/* Left: Sidebar */}
+      <div style={{ flex: "0 0 280px", minWidth: 0 }}>
+        <div className="container">
+          {/* Desktop sidebar (left) */}
+          <aside className="sidebar desktop">
             <Sidebar
               chats={chats}
               currentChatId={currentId}
@@ -166,11 +105,56 @@ export default function App() {
               onPickSample={onPickSample}
             />
           </aside>
-        </div>
-      )}
 
-      {/* Tools panel */}
-      <ToolsPanel open={toolsOpen} onClose={() => setToolsOpen(false)} version={version} />
+          {/* Mobile slide-in sidebar */}
+          {mobileOpen && (
+            <div className="mobile-overlay" onClick={() => setMobileOpen(false)}>
+              <aside className="sidebar mobile" onClick={(e) => e.stopPropagation()}>
+                <Sidebar
+                  chats={chats}
+                  currentChatId={currentId}
+                  onSelectChat={onSelectChat}
+                  onNewChat={onNewChat}
+                  onPickSample={onPickSample}
+                />
+              </aside>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Main content */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div className="main">
+          <div className="header">
+            <div className="left">
+              <button className="toggle" onClick={() => setMobileOpen(true)}>☰</button>
+              <div style={{ fontWeight: 600 }}>Chat</div>
+              <select value={version} onChange={e => setVersion(e.target.value)}>
+                <option value="4.0">FIX 4.0</option>
+                <option value="4.2">FIX 4.2</option>
+                <option value="4.4">FIX 4.4</option>
+                <option value="5.0">FIX 5.0</option>
+              </select>
+            </div>
+            <div style={{ opacity: .7, fontSize: 14 }}>FIX AI Assistant</div>
+            <div className="right">
+              <span className="text-zinc-400 text-sm">FIX Builder</span>
+            </div>
+          </div>
+
+          <div className="content">
+            {current && (
+              <ChatPage messages={current.messages} onSend={onSend} prefill={prefill} version={version} />
+            )}
+          </div>
+
+          {/* FIX Toolbar embedded at bottom */}
+          <div className="mx-auto max-w-6xl px-4 py-6 space-y-8" style={{ borderTop: '1px solid #374151', marginTop: '2rem' }}>
+            <BottomToolbar variant="inline" />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
