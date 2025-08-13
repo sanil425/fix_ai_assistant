@@ -10,3 +10,11 @@ backend/.env
 backend/server.log
 backend/.env
 backend/.env
+
+# secrets
+.env
+**/.env
+*.env
+# logs
+*.log
+backend/server.log
