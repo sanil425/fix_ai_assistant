@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Simple secret guard: blocks commits containing likely OpenAI keys
+set -e
+if git diff --cached -U0 | grep -E 'sk-[A-Za-z0-9]{20,}'; then
+  echo "❌ Possible secret detected (sk-...). Remove it before committing."
+  exit 1
+fi
