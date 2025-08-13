@@ -8,3 +8,4 @@ backend/.env
 # logs
 *.log
 backend/server.log
+backend/.env
