@@ -1,0 +1,158 @@
+{
+  "version": "0.1-mvp",
+  "description": "High-value cross-field rules for building/validating D/F/G and explaining 8 (ExecutionReport).",
+  "rules": [
+    {
+      "id": "R-001",
+      "name": "Required fields by OrdType",
+      "applies_to": ["D"],
+      "severity": "error",
+      "when": "always",
+      "logic": {
+        "all_of": [
+          {"present": ["11", "55", "54", "38", "40"]},
+          {
+            "if": {"equals": {"40": "2"}},
+            "then": {"present": ["44"]},
+            "else": null
+          },
+          {
+            "if": {"in": {"40": ["3", "4"]}},
+            "then": {"present": ["99"]},
+            "else": null
+          },
+          {
+            "if": {"equals": {"40": "4"}},
+            "then": {"present": ["44"]},
+            "else": null
+          }
+        ]
+      },
+      "error_on_fail": "Missing required field(s) for OrdType. For Limit(2) require Price(44). For Stop(3)/StopLimit(4) require StopPx(99). For StopLimit(4) also require Price(44). Always require ClOrdID(11), Symbol(55), Side(54), OrderQty(38), OrdType(40).",
+      "tags_involved": ["11","55","54","38","40","44","99"]
+    },
+    {
+      "id": "R-002",
+      "name": "TIF compatibility & defaults",
+      "applies_to": ["D"],
+      "severity": "error",
+      "defaults": {
+        "59": "0"
+      },
+      "logic": {
+        "all_of": [
+          {
+            "if": {"equals": {"59": "6"}},
+            "then": {"present": ["432"]},
+            "else": null
+          },
+          {
+            "if": {"in": {"59": ["3", "4"]}},
+            "then": {"in": {"40": ["1", "2"]}},
+            "else": null
+          }
+        ]
+      },
+      "error_on_fail": "Invalid TIF. Default TIF to Day(0) if absent. GTD(6) requires ExpireDate(432). IOC(3)/FOK(4) only valid with Market(1) or Limit(2).",
+      "tags_involved": ["59","432","40"]
+    },
+    {
+      "id": "R-003",
+      "name": "Cancel Request (F) must reference a live order",
+      "applies_to": ["F"],
+      "severity": "error",
+      "logic": {
+        "all_of": [
+          {"present": ["11", "41"]},
+          {"order_state": {"exists_by_OrigClOrdID(41)": true}},
+          {"order_state": {"is_live_open": true}}
+        ]
+      },
+      "error_on_fail": "OrigClOrdID(41) must refer to an existing live order (not filled/canceled/rejected). Require ClOrdID(11) and OrigClOrdID(41).",
+      "tags_involved": ["11","41"],
+      "order_state_usage": "Look up by OrigClOrdID(41) to find the working order."
+    },
+    {
+      "id": "R-004",
+      "name": "Cancel/Replace (G) immutable vs mutable fields",
+      "applies_to": ["G"],
+      "severity": "error",
+      "logic": {
+        "all_of": [
+          {"present": ["11", "41"]},
+          {"order_state": {"exists_by_OrigClOrdID(41)": true}},
+          {"order_state": {"is_live_open": true}},
+          {
+            "immutable_fields_unchanged": ["55", "54", "48", "22"],
+            "explanation": "Symbol(55), Side(54), SecurityID(48), SecurityIDSource(22) must not change."
+          },
+          {
+            "at_least_one_of_present_to_replace": ["44", "38", "99", "59", "432"]
+          }
+        ]
+      },
+      "error_on_fail": "G requires live order via OrigClOrdID(41). You may change Price(44), OrderQty(38), StopPx(99), TIF(59), ExpireDate(432). You must NOT change Symbol(55), Side(54), or instrument identity.",
+      "tags_involved": ["11","41","55","54","48","22","44","38","99","59","432"]
+    },
+    {
+      "id": "R-005",
+      "name": "ExecutionReport math and status consistency",
+      "applies_to": ["8"],
+      "severity": "error",
+      "logic": {
+        "all_of": [
+          {"present": ["150", "39", "14", "151", "38"]},
+          {"equation": {"lhs": ["14","+","151"], "equals": "38"}},
+          {
+            "cases": [
+              {
+                "if": {"equals": {"150": "0"}},
+                "then": {"equals": {"39": "0"}},
+                "explain": "ExecType=NEW -> OrdStatus=New."
+              },
+              {
+                "if": {"equals": {"150": "1"}},
+                "then": {"equals": {"39": "1"}},
+                "explain": "ExecType=PARTIAL_FILL -> OrdStatus=PartiallyFilled."
+              },
+              {
+                "if": {"equals": {"150": "F"}},
+                "then": [{"equals": {"39": "2"}}, {"equals": {"151": 0}}],
+                "explain": "ExecType=FILL -> OrdStatus=Filled and LeavesQty=0."
+              },
+              {
+                "if": {"equals": {"150": "4"}},
+                "then": {"equals": {"39": "4"}},
+                "explain": "ExecType=CANCELED -> OrdStatus=Canceled."
+              },
+              {
+                "if": {"equals": {"150": "5"}},
+                "then": {"equals": {"39": "5"}},
+                "explain": "ExecType=REPLACED -> OrdStatus=Replaced."
+              },
+              {
+                "if": {"equals": {"150": "8"}},
+                "then": {"equals": {"39": "8"}},
+                "explain": "ExecType=REJECTED -> OrdStatus=Rejected."
+              }
+            ]
+          }
+        ]
+      },
+      "error_on_fail": "CumQty(14)+LeavesQty(151) must equal OrderQty(38). ExecType(150) and OrdStatus(39) must be consistent (NEW/0, PARTIAL/1, FILL/2, CXL/4, RPL/5, REJ/8).",
+      "tags_involved": ["150","39","14","151","38"]
+    }
+  ],
+  "notes": {
+    "conventions": {
+      "message_types": {
+        "D": "NewOrderSingle",
+        "F": "OrderCancelRequest",
+        "G": "OrderCancelReplaceRequest",
+        "8": "ExecutionReport"
+      }
+    },
+    "defaults_policy": "Only safe, industry-standard defaults are applied (e.g., TIF=Day when absent). Broker-specific behavior is intentionally out of scope for MVP.",
+    "order_state_lookup": "Rules R-003 and R-004 expect lookup by OrigClOrdID(41) into order_state.json to verify existence and liveliness."
+  }
+}

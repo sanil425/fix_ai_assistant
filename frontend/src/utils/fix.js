@@ -1,3 +1,4 @@
+/** quick note: builds a FIX NewOrderSingle and renders it. simple and predictable. */
 // src/utils/fix.js
 
 // Compute byte length using TextEncoder (browser-safe)
@@ -64,12 +65,12 @@ export function buildNewOrderSingle({
   // BodyLength (9) is the length in bytes from after the 9=...<SOH> up to, but not including, tag 10
   // So it's simply the byte length of `tail` when we format as:
   // 8=...<SOH>9=NNN<SOH><tail>
-  const bodyLen = byteLen(tail);
+  const bodyLen = byteLen(tail); // compute FIX BodyLength (bytes between 9=...SOH and tag 10)
   const head = `${begin}9=${bodyLen}${SOH}`;
   const preChecksum = head + tail;
 
   // CheckSum (10) is (sum of all bytes up to and including the last <SOH> before tag 10) % 256, 3-digit padded
-  const csum = String(byteSum(preChecksum) % 256).padStart(3, "0");
+  const csum = String(byteSum(preChecksum) % 256).padStart(3, "0"); // compute FIX CheckSum (sum % 256)
   const finalMsg = preChecksum + `10=${csum}${SOH}`;
 
   // For UI display, replace SOH with '|'

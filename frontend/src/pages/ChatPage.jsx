@@ -1,3 +1,4 @@
+/** quick note: renders the chat messages and input. simple layout with scroll-to-bottom. */
 import { useEffect, useRef } from "react";
 import ChatMessage from "../components/ChatMessage.jsx";
 import ChatInput from "../components/ChatInput.jsx";

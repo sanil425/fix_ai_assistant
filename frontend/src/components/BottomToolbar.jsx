@@ -1,3 +1,4 @@
+/** quick note: FIX message builder toolbar. builds orders and saves to blotter. embedded at bottom of chat page. */
 // src/components/BottomToolbar.jsx
 import { useEffect, useMemo, useState } from "react";
 import { buildNewOrderSingle, validateNewOrder } from "../utils/fix";
@@ -20,7 +21,7 @@ function useLocalStorage(key, initial) {
   const [state, setState] = useState(() => {
     try { return JSON.parse(localStorage.getItem(key)) ?? initial; } catch { return initial; }
   });
-  useEffect(() => { localStorage.setItem(key, JSON.stringify(state)); }, [key, state]);
+  useEffect(() => { localStorage.setItem(key, JSON.stringify(state)); }, [key, state]); // persist to localStorage
   return [state, setState];
 }
 

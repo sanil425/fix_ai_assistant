@@ -1,3 +1,4 @@
+/** quick note: renders individual chat messages. handles user vs assistant styling. */
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 

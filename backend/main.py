@@ -1,10 +1,11 @@
+"""quick note: tiny FastAPI backend for the demo. just /health for now, so we can add real endpoints later without rewiring."""
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api.ask import router as ask_router
 
-app = FastAPI()
+app = FastAPI(title="fix-demo-backend")
 
-# Dev-friendly CORS
+# dev-friendly CORS — fine for demo, tighten later when adding real endpoints
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -12,12 +13,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Health check (for quick sanity)
 @app.get("/health")
 def health():
+    """one-liner: simple liveness check so ops/devs can see the server is up."""
     return {"ok": True}
-
-# AI route(s)
-app.include_router(ask_router, prefix="/api")
-
-# Uvicorn entrypoint: uvicorn main:app --reload

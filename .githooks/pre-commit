@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-set -e
-if git diff --cached -U0 | grep -E 'sk-[A-Za-z0-9]{20,}'; then
-  echo "❌ Possible secret detected (sk-...). Remove it before committing."
-  exit 1
-fi

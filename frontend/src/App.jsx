@@ -1,13 +1,10 @@
+/** quick note: chat page with placeholder replies + the FIX toolbar at the bottom. no AI calls at all. */
 import { useEffect, useState } from "react";
 import Sidebar from "./components/Sidebar.jsx";
 import ChatPage from "./pages/ChatPage.jsx";
 import BottomToolbar from "./components/BottomToolbar";
 import "./styles/design.css";
 import "./styles/bottom-toolbar.css";
-// TEMP: AI disabled for demo; re-enable by restoring ChatDock and askAI usage
-// import ChatDock from "./components/ChatDock.jsx";
-// import { loadChats, createChat, updateChat, getChat } from "./state/chatStore.js";
-// import { askBackend } from "./lib/api.js";
 
 export default function App() {
   const [version, setVersion] = useState(localStorage.getItem("fixVersion") || "4.4");
@@ -16,7 +13,7 @@ export default function App() {
   const [prefill, setPrefill] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
   
-  useEffect(() => { localStorage.setItem("fixVersion", version); }, [version]);
+  useEffect(() => { localStorage.setItem("fixVersion", version); }, [version]); // persist version choice
 
   // init
   useEffect(() => {
@@ -137,7 +134,7 @@ export default function App() {
                 <option value="5.0">FIX 5.0</option>
               </select>
             </div>
-            <div style={{ opacity: .7, fontSize: 14 }}>FIX AI Assistant</div>
+            <div style={{ opacity: .7, fontSize: 14 }}>FIX Demo</div>
             <div className="right">
               <span className="text-zinc-400 text-sm">FIX Builder</span>
             </div>

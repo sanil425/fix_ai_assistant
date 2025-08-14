@@ -1,0 +1,322 @@
+{
+  "$schema": "https://example.com/fix44/fields.schema.json",
+  "meta": {
+    "spec": "FIX 4.4 – Volume 6 (Data Dictionary, 2003-06-18 Errata)",
+    "source_note": "Field names, types, enums, and FIXML element names taken from the FIX 4.4 Data Dictionary",
+    "license": "See FIX Protocol Limited terms in the spec"
+  },
+  "aliases": ["core_fields.json", "master_fields.json", "tags.json", "core.json"],
+  "groups": {
+    "header": ["8","9","35","34","49","50","52"],
+    "trailer": ["10"]
+  },
+  "fields": {
+    "1":  { "name": "Account", "type": "String", "fixml_element": "Acct",
+            "description": "Account mnemonic agreed between counterparties." },
+
+    "2":  { "name": "AdvId", "type": "String", "fixml_element": "AdvId",
+            "description": "Unique identifier of advertisement message." },
+
+    "3":  { "name": "AdvRefID", "type": "String", "fixml_element": "AdvRefID",
+            "description": "Reference ID used with CANCEL/REPLACE for advertisements." },
+
+    "4":  { "name": "AdvSide", "type": "char", "fixml_element": "AdvSide",
+            "description": "Broker’s side of advertised trade.",
+            "enum": [
+              {"code":"B","meaning":"Buy"},
+              {"code":"S","meaning":"Sell"},
+              {"code":"X","meaning":"Cross"},
+              {"code":"T","meaning":"Trade"}
+            ]},
+
+    "5":  { "name": "AdvTransType", "type": "String", "fixml_element": "AdvTransTyp",
+            "description": "Advertisement transaction type.",
+            "enum": [
+              {"code":"N","meaning":"New"},
+              {"code":"C","meaning":"Cancel"},
+              {"code":"R","meaning":"Replace"}
+            ]},
+
+    "6":  { "name": "AvgPx", "type": "Price", "fixml_element": "AvgPx",
+            "description": "Calculated average price of all fills on this order; FI trades are percent-of-par." },
+
+    "8":  { "name": "BeginString", "type": "String",
+            "description": "Protocol version. ALWAYS first field in message.",
+            "enum": [{"code":"FIX.4.4","meaning":"FIX 4.4"}] },
+
+    "9":  { "name": "BodyLength", "type": "Length",
+            "description": "Message length in bytes to CheckSum. ALWAYS second field." },
+
+    "10": { "name": "CheckSum", "type": "String",
+            "description": "Three-digit checksum. ALWAYS last field.",
+            "pattern": "^[0-9]{3}$" },
+
+    "11": { "name": "ClOrdID", "type": "String", "fixml_element": "ClOrdID",
+            "description": "Buy-side assigned order ID; should be unique at least per day." },
+
+    "12": { "name": "Commission", "type": "Amt", "fixml_element": "Comm",
+            "description": "Commission monetary amount; if percentage, 5% is 0.05." },
+
+    "13": { "name": "CommType", "type": "char", "fixml_element": "CommTyp",
+            "description": "Commission type.",
+            "enum": [
+              {"code":"1","meaning":"Per unit"},
+              {"code":"2","meaning":"Percentage"},
+              {"code":"3","meaning":"Absolute"},
+              {"code":"4","meaning":"Pct waived – cash discount (CIV)"},
+              {"code":"5","meaning":"Pct waived – enhanced units (CIV)"},
+              {"code":"6","meaning":"Points per bond/contract"}
+            ]},
+
+    "14": { "name": "CumQty", "type": "Qty", "fixml_element": "CumQty",
+            "description": "Total filled quantity so far for the order." },
+
+    "15": { "name": "Currency", "type": "Currency", "fixml_element": "Ccy",
+            "description": "Currency for price; use ISO 4217 code.",
+            "format_note": "ISO currency code (%isoCurrencyCode in FIXML DTD)" },
+
+    "16": { "name": "EndSeqNo", "type": "SeqNum",
+            "description": "Last seq num in resend range; 0 means infinity." },
+
+    "17": { "name": "ExecID", "type": "String", "fixml_element": "ExecID",
+            "description": "Sell-side assigned execution ID; unique per trading day." },
+
+    "18": { "name": "ExecInst", "type": "MultipleValueString", "fixml_element": "ExecInst",
+            "description": "Execution handling instructions; space-separated when multiple.",
+            "enum": [
+              {"code":"1","meaning":"Not held"},
+              {"code":"2","meaning":"Work"},
+              {"code":"3","meaning":"Go along"},
+              {"code":"4","meaning":"Over the day"},
+              {"code":"5","meaning":"Held"},
+              {"code":"6","meaning":"Participate don't initiate"},
+              {"code":"7","meaning":"Strict scale"},
+              {"code":"8","meaning":"Try to scale"},
+              {"code":"9","meaning":"Stay on bid side"},
+              {"code":"0","meaning":"Stay on offer side"},
+              {"code":"A","meaning":"No cross"},
+              {"code":"B","meaning":"OK to cross"},
+              {"code":"C","meaning":"Call first"},
+              {"code":"D","meaning":"Percent of volume"},
+              {"code":"E","meaning":"Do not increase (DNI)"},
+              {"code":"F","meaning":"Do not reduce (DNR)"},
+              {"code":"G","meaning":"All or none (AON)"},
+              {"code":"H","meaning":"Reinstate on system failure"},
+              {"code":"I","meaning":"Institutions only"},
+              {"code":"J","meaning":"Reinstate on trading halt"},
+              {"code":"K","meaning":"Cancel on trading halt"},
+              {"code":"L","meaning":"Last peg"},
+              {"code":"M","meaning":"Mid-price peg"},
+              {"code":"N","meaning":"Non-negotiable"},
+              {"code":"O","meaning":"Opening peg"},
+              {"code":"P","meaning":"Market peg"},
+              {"code":"Q","meaning":"Cancel on system failure"},
+              {"code":"R","meaning":"Primary peg"},
+              {"code":"S","meaning":"Suspend"},
+              {"code":"T","meaning":"Fixed peg to local BBO at order time"},
+              {"code":"U","meaning":"Customer display instruction"},
+              {"code":"V","meaning":"Netting (Forex)"},
+              {"code":"W","meaning":"Peg to VWAP"},
+              {"code":"X","meaning":"Trade along"},
+              {"code":"Y","meaning":"Try to stop"},
+              {"code":"Z","meaning":"Cancel if not best"},
+              {"code":"a","meaning":"Trailing stop peg"},
+              {"code":"b","meaning":"Strict limit"},
+              {"code":"c","meaning":"Ignore price validity checks"},
+              {"code":"d","meaning":"Peg to limit price"},
+              {"code":"e","meaning":"Work to target strategy"}
+            ]},
+
+    "19": { "name": "ExecRefID", "type": "String", "fixml_element": "ExecRefID",
+            "description": "Reference ID for trade cancel/correct exec types." },
+
+    "20": { "name": "ExecTransType", "type": "char",
+            "description": "Replaced in FIX 4.3; included for historical reference.",
+            "deprecated": true, "since": "FIX 4.3" },
+
+    "21": { "name": "HandlInst", "type": "char", "fixml_element": "HandlInst",
+            "description": "Broker floor handling instructions.",
+            "enum": [
+              {"code":"1","meaning":"Auto-exec, private, no broker intervention"},
+              {"code":"2","meaning":"Auto-exec, public, broker intervention OK"},
+              {"code":"3","meaning":"Manual, best execution"}
+            ]},
+
+    "22": { "name": "SecurityIDSource", "type": "String", "fixml_element": "SecIDSrc",
+            "description": "Class/source of SecurityID; required if SecurityID is present.",
+            "enum": [
+              {"code":"1","meaning":"CUSIP"},
+              {"code":"2","meaning":"SEDOL"},
+              {"code":"3","meaning":"QUIK"},
+              {"code":"4","meaning":"ISIN"},
+              {"code":"5","meaning":"RIC"},
+              {"code":"6","meaning":"ISO Currency Code"},
+              {"code":"7","meaning":"ISO Country Code"},
+              {"code":"8","meaning":"Exchange Symbol"},
+              {"code":"9","meaning":"CTA Symbol"},
+              {"code":"A","meaning":"Bloomberg Symbol"},
+              {"code":"B","meaning":"Wertpapier"},
+              {"code":"C","meaning":"Dutch"},
+              {"code":"D","meaning":"Valoren"},
+              {"code":"E","meaning":"Sicovam"},
+              {"code":"F","meaning":"Belgian"},
+              {"code":"G","meaning":"Common (Clearstream/Euroclear)"},
+              {"code":"H","meaning":"Clearing House/Organization"},
+              {"code":"I","meaning":"ISDA/FpML Product Spec"},
+              {"code":"J","meaning":"OPRA"}
+            ]},
+
+    "23": { "name": "IOIID", "type": "String", "fixml_element": "IOIID",
+            "description": "Unique ID of IOI message." },
+
+    "25": { "name": "IOIQltyInd", "type": "char", "fixml_element": "IOIQltyInd",
+            "description": "Relative IOI quality.",
+            "enum": [
+              {"code":"L","meaning":"Low"},
+              {"code":"M","meaning":"Medium"},
+              {"code":"H","meaning":"High"}
+            ]},
+
+    "26": { "name": "IOIRefID", "type": "String", "fixml_element": "IOIRefID",
+            "description": "Reference ID used with CANCEL/REPLACE for IOI." },
+
+    "27": { "name": "IOIQty", "type": "String", "fixml_element": "IOIQty",
+            "description": "IOI quantity (numeric or relative size).",
+            "enum_hint": [{"code":"S","meaning":"Small"},{"code":"M","meaning":"Medium"},{"code":"L","meaning":"Large"}]},
+
+    "28": { "name": "IOITransType", "type": "char", "fixml_element": "IOITransTyp",
+            "description": "IOI transaction type.",
+            "enum": [
+              {"code":"N","meaning":"New"},
+              {"code":"C","meaning":"Cancel"},
+              {"code":"R","meaning":"Replace"}
+            ]},
+
+    "29": { "name": "LastCapacity", "type": "char", "fixml_element": "LastCpcty",
+            "description": "Broker capacity in execution.",
+            "enum": [
+              {"code":"1","meaning":"Agent"},
+              {"code":"2","meaning":"Cross as agent"},
+              {"code":"3","meaning":"Cross as principal"},
+              {"code":"4","meaning":"Principal"}
+            ]},
+
+    "30": { "name": "LastMkt", "type": "Exchange", "fixml_element": "LastMkt",
+            "description": "Execution market for last fill or where order routed.",
+            "format_note": "ISO 10383 Market Identifier Code (MIC)" },
+
+    "31": { "name": "LastPx", "type": "Price", "fixml_element": "LastPx",
+            "description": "Price of the last fill." },
+
+    "32": { "name": "LastQty", "type": "Qty", "fixml_element": "LastQty",
+            "description": "Quantity of the last fill." },
+
+    "33": { "name": "NoLinesOfText", "type": "NumInGroup", "fixml_element": "NoLinesOfText",
+            "description": "Number of lines in a free-text block." },
+
+    "34": { "name": "MsgSeqNum", "type": "SeqNum",
+            "description": "Integer message sequence number." },
+
+    "35": { "name": "MsgType", "type": "String",
+            "description": "Defines message type. ALWAYS third field.",
+            "enum_subset": [
+              {"code":"0","meaning":"Heartbeat"},
+              {"code":"1","meaning":"Test Request"},
+              {"code":"2","meaning":"Resend Request"},
+              {"code":"3","meaning":"Reject"},
+              {"code":"4","meaning":"Sequence Reset"},
+              {"code":"5","meaning":"Logout"},
+              {"code":"6","meaning":"Indication of Interest"},
+              {"code":"7","meaning":"Advertisement"},
+              {"code":"8","meaning":"Execution Report"},
+              {"code":"9","meaning":"Order Cancel Reject"},
+              {"code":"A","meaning":"Logon"},
+              {"code":"D","meaning":"New Order - Single"},
+              {"code":"F","meaning":"Order Cancel Request"},
+              {"code":"G","meaning":"Order Cancel/Replace Request"},
+              {"code":"H","meaning":"Order Status Request"},
+              {"code":"V","meaning":"Market Data Request"},
+              {"code":"W","meaning":"Market Data Snapshot/Full Refresh"},
+              {"code":"X","meaning":"Market Data Incremental Refresh"},
+              {"code":"Y","meaning":"Market Data Request Reject"},
+              {"code":"Z","meaning":"Quote Cancel"}
+            ],
+            "note": "Full MsgType list is long; keep adding as you need them from the spec."
+    },
+
+    "39": { "name": "OrdStatus", "type": "char", "fixml_element": "OrdStat",
+            "description": "Current order status.",
+            "enum": [
+              {"code":"0","meaning":"New"},
+              {"code":"1","meaning":"Partially filled"},
+              {"code":"2","meaning":"Filled"},
+              {"code":"3","meaning":"Done for day"},
+              {"code":"4","meaning":"Canceled"},
+              {"code":"6","meaning":"Pending Cancel"},
+              {"code":"7","meaning":"Stopped"},
+              {"code":"8","meaning":"Rejected"},
+              {"code":"9","meaning":"Suspended"},
+              {"code":"A","meaning":"Pending New"},
+              {"code":"B","meaning":"Calculated"},
+              {"code":"C","meaning":"Expired"},
+              {"code":"D","meaning":"Accepted for bidding"},
+              {"code":"E","meaning":"Pending Replace"}
+            ]},
+
+    "40": { "name": "OrdType", "type": "char", "fixml_element": "OrdTyp",
+            "description": "Order type (some values deprecated/no longer used).",
+            "enum": [
+              {"code":"1","meaning":"Market"},
+              {"code":"2","meaning":"Limit"},
+              {"code":"3","meaning":"Stop"},
+              {"code":"4","meaning":"Stop limit"},
+              {"code":"5","meaning":"Market on close","deprecated":true},
+              {"code":"6","meaning":"With or without"},
+              {"code":"7","meaning":"Limit or better","deprecated":true},
+              {"code":"8","meaning":"Limit with or without"},
+              {"code":"9","meaning":"On basis"},
+              {"code":"A","meaning":"On close","deprecated":true},
+              {"code":"B","meaning":"Limit on close","deprecated":true},
+              {"code":"C","meaning":"Forex - Market","deprecated":true},
+              {"code":"D","meaning":"Previously quoted"},
+              {"code":"E","meaning":"Previously indicated"},
+              {"code":"F","meaning":"Forex - Limit","deprecated":true},
+              {"code":"G","meaning":"Forex - Swap"},
+              {"code":"H","meaning":"Forex - Previously Quoted","deprecated":true},
+              {"code":"I","meaning":"Funari"},
+              {"code":"J","meaning":"Market If Touched"},
+              {"code":"K","meaning":"Market with Leftover as Limit"},
+              {"code":"L","meaning":"Previous Fund Valuation Point (CIV)"},
+              {"code":"M","meaning":"Next Fund Valuation Point (CIV)"},
+              {"code":"P","meaning":"Pegged"}
+            ]},
+
+    "41": { "name": "OrigClOrdID", "type": "String", "fixml_element": "OrigClOrdID",
+            "description": "ClOrdID of the previous order being canceled/replaced." },
+
+    "42": { "name": "OrigTime", "type": "UTCTimestamp", "fixml_element": "OrigTm",
+            "description": "Time of message origination (UTC)." },
+
+    "43": { "name": "PossDupFlag", "type": "Boolean", "fixml_element": "PossDupFlag",
+            "description": "Indicates possible retransmission of a message.",
+            "enum": [{"code":"Y","meaning":"Possible duplicate"},{"code":"N","meaning":"Original transmission"}]},
+
+    "44": { "name": "Price", "type": "Price", "fixml_element": "Px",
+            "description": "Price per unit of quantity." },
+
+    "45": { "name": "RefSeqNum", "type": "SeqNum", "fixml_element": "RefSeqNum",
+            "description": "Reference message sequence number." },
+
+    "48": { "name": "SecurityID", "type": "String", "fixml_element": "SecID",
+            "description": "Security identifier whose scheme is given by SecurityIDSource (22)." },
+
+    "49": { "name": "SenderCompID", "type": "String", "fixml_element": "SndCompID",
+            "description": "Firm sending the message." },
+
+    "50": { "name": "SenderSubID", "type": "String", "fixml_element": "SndSubID",
+            "description": "Specific originator (desk, trader, etc.)." },
+
+    "52": { "name": "SendingTime", "type": "UTCTimestamp", "fixml_element": "SndgTm",
+            "description": "Time of message transmission (UTC)." }
+  }
+}

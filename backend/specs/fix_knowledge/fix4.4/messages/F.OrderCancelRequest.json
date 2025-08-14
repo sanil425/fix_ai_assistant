@@ -1,0 +1,55 @@
+{
+  "name": "Order Cancel Request",
+  "msgType": "F",
+  "purpose": "Request cancellation of all remaining quantity on an existing order.",
+  "required": [
+    "41", "11", "54", "60", "Instrument", "OrderQtyData"
+  ],
+  "components": {
+    "Instrument": "components/Instrument.json",
+    "OrderQtyData": "components/OrderQtyData.json"
+  },
+  "fields": {
+    "41": { "name": "OrigClOrdID", "type": "String", "role": "ClOrdID of the last accepted order to be canceled" },
+    "37": { "name": "OrderID", "type": "String", "optional": true, "notes": "If known from the sell-side" },
+    "11": { "name": "ClOrdID", "type": "String", "role": "New id for this cancel request (must be unique)" },
+    "66": { "name": "ListID", "type": "String", "optional": true },
+    "1":  { "name": "Account", "type": "String", "optional": true },
+    "54": { "name": "Side", "type": "char", "enum": ["1","2"] },
+    "60": { "name": "TransactTime", "type": "UTCTimestamp" },
+    "58": { "name": "Text", "type": "String", "optional": true }
+  },
+  "constraints": [
+    {
+      "then": { "must_have": ["41", "11", "54", "60"] },
+      "explain": "Cancel requests need OrigClOrdID (target), new ClOrdID (this request), Side, and TransactTime."
+    },
+    {
+      "rule": "Instrument on cancel must match original order’s instrument.",
+      "explain": "Spec requires matching instrument identification.",
+      "scope": "engine"
+    },
+    {
+      "rule": "ClOrdID uniqueness across New/Replace/Cancel namespaces.",
+      "explain": "Cancel is a separate entity and must have a unique id.",
+      "scope": "session"
+    }
+  ],
+  "responses_expected": [
+    { "execReport": "PendingCancel (ExecType='6') unless immediately Canceled (ExecType='4'), else OrderCancelReject (9)." }
+  ],
+  "examples": [
+    {
+      "label": "Cancel remaining on buy order",
+      "fields": { "41": "A1-001", "11": "CXL-0001", "54": "1", "60": "2025-08-14T01:10:00Z" },
+      "components": {
+        "Instrument": { "55": "AAPL" },
+        "OrderQtyData": { "38": 1000 }
+      }
+    }
+  ],
+  "spec_refs": [
+    "FIX 4.4 Vol 4: Order Cancel Request table",
+    "FIX 4.4 Vol 4: Cancel flow and responses"
+  ]
+}

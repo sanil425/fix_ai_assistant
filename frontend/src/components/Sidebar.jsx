@@ -1,3 +1,4 @@
+/** quick note: left sidebar with chat list and sample questions. handles mobile overlay too. */
 export default function Sidebar({
   chats = [],
   currentChatId,

@@ -1,3 +1,4 @@
+/** quick note: chat input field with send button. handles Enter key and initial text. */
 import { useState } from "react";
 
 export default function ChatInput({ onSend, initialText }) {
