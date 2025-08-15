@@ -1,0 +1,20 @@
+{
+  "name": "OrderQtyData",
+  "type": "component",
+  "description": "Quantity semantics for the order. Exactly one of OrderQty, CashOrderQty, or (CIV) OrderPercent is generally provided.",
+  "fields": [
+    { "tag": 38, "name": "OrderQty", "type": "Qty", "req": false, "notes": "Primary quantity (shares/contracts)."},
+    { "tag": 152, "name": "CashOrderQty", "type": "Qty", "req": false, "notes": "Approximate monetary amount; broker computes OrderQty for execution." },
+    { "tag": 516, "name": "OrderPercent", "type": "Percentage", "req": false, "notes": "CIV only." },
+    { "tag": 468, "name": "RoundingDirection", "type": "char", "req": false, "enum_hint": "0=RoundToNearest, 1=RoundDown, 2=RoundUp" },
+    { "tag": 469, "name": "RoundingModulus", "type": "float", "req": false }
+  ],
+  "validation": [
+    "Exactly one of OrderQty (38), CashOrderQty (152), or OrderPercent (516, CIV only) SHOULD be supplied.",
+    "If CashOrderQty is used, downstream ExecutionReports should reflect computed OrderQty."
+  ],
+  "hints": [
+    "For vanilla equities/derivs: use OrderQty.",
+    "Use CashOrderQty when client sends a monetary amount that must be converted to units."
+  ]
+}
