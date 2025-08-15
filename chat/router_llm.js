@@ -3,13 +3,7 @@
  * Routes user utterances through OpenAI with strict JSON output
  */
 
-import 'dotenv/config';
-import OpenAI from 'openai';
-
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-    timeout: parseInt(process.env.OPENAI_TIMEOUT_MS || '8000'),
-});
+import { openai } from '../server/llm/openai_client.js';
 
 const SYSTEM_PROMPT = `FIX Chat Router — Strict JSON Only
 
@@ -93,6 +87,10 @@ Return: {"intent":"unknown","args":{},"reply_style":"ask_clarify"}.`;
  * @returns {Promise<Object>} Structured intent and args
  */
 export async function route(utterance) {
+    if (!openai) {
+        throw new Error("LLM not configured: OPENAI_API_KEY missing");
+    }
+    
     try {
         const completion = await openai.chat.completions.create({
             model: process.env.OPENAI_MODEL || 'gpt-4o-mini',

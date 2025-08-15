@@ -4,6 +4,7 @@ import Sidebar from "./components/Sidebar.jsx";
 import ChatPage from "./pages/ChatPage.jsx";
 import BottomToolbar from "./components/BottomToolbar";
 import ChatDock from "./components/ChatDock";
+import { sendChat } from "./lib/chatClient";
 import "./styles/design.css";
 import "./styles/bottom-toolbar.css";
 
@@ -72,21 +73,33 @@ export default function App() {
     );
     setChats(withTyping);
 
-    // 3) Replace typing with canned reply after delay
-    setTimeout(() => {
-      const canned = [
-        "Demo mode: no AI connected. This is a placeholder answer.",
-        "This is a placeholder response. Scroll down to use the FIX toolbar.",
-        "Static response (offline)."
-      ];
-      const reply = canned[Math.floor(Math.random() * canned.length)];
+    // 3) Call real backend and replace typing with response
+    try {
+      const versioned = `[fix:${version}] ${text}`;
+      const resp = await sendChat({ message: versioned });
+
+      const main = resp?.narration?.text || resp?.explanation || resp?.message || JSON.stringify(resp, null, 2);
+      
+      const badgeParts = [];
+      if (resp?.result?.type) badgeParts.push(`type=${resp.result.type}`);
+      if (typeof resp?.result?.valid === "boolean") badgeParts.push(`valid=${resp.result.valid}`);
+      const badge = badgeParts.length ? `\n\n— ${badgeParts.join(" · ")}` : "";
+      
+      const reply = `${main}${badge}`;
       
       setChats(prevChats => prevChats.map(c => 
         c.id === currentId 
           ? { ...c, messages: c.messages.filter(m => !m.typing).concat([{ role: "assistant", content: reply, ts: Date.now() }]) }
           : c
       ));
-    }, 300);
+    } catch (error) {
+      const errorMessage = error.message || "Failed to get response from chat service";
+      setChats(prevChats => prevChats.map(c => 
+        c.id === currentId 
+          ? { ...c, messages: c.messages.filter(m => !m.typing).concat([{ role: "assistant", content: `Error: ${errorMessage}`, ts: Date.now() }]) }
+          : c
+      ));
+    }
   };
 
   return (

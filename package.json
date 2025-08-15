@@ -10,7 +10,8 @@
     "preview": "cd frontend && npm run preview",
     "chat:run": "node chat/runner.js",
     "chat:server": "node server/chat_server.js",
-    "chat:dev": "CHAT_PORT=8787 node server/chat_server.js"
+    "chat:dev": "CHAT_PORT=8787 node server/chat_server.js",
+    "chat:env": "node -e \"import('./server/boot/env.js').then(m=>{console.log('OPENAI_API_KEY len:', (process.env.OPENAI_API_KEY||'').length); console.log('singleLine:', !(/\\r|\\n/.test(process.env.OPENAI_API_KEY||''))); console.log('files:', m.loadedEnvFiles);})\""
   },
   "dependencies": {
     "cors": "^2.8.5",

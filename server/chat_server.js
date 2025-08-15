@@ -5,7 +5,8 @@
  * Exposes POST /chat endpoint using existing chat modules
  */
 
-import 'dotenv/config';
+// MUST be first so process.env is ready for all subsequent imports
+import "./boot/env.js";
 import express from 'express';
 import cors from 'cors';
 import { route } from '../chat/router_llm.js';
@@ -21,6 +22,11 @@ import {
 
 const app = express();
 const PORT = process.env.CHAT_PORT || 8787;
+let llmStatus = null; // Track LLM status for health endpoint
+
+// Import environment diagnostics
+import { loadedEnvFiles, readEnv, mask } from "./boot/env.js";
+import { API_KEY, MODEL, keyStatus } from "./llm/openai_client.js";
 
 // CORS configuration - allow frontend origin or all origins
 // TODO: Tighten CORS for production by setting FRONTEND_ORIGIN
@@ -183,7 +189,9 @@ async function processChatMessage(message, sessionId) {
 app.get('/healthz', (req, res) => {
     res.json({
         ok: true,
-        mode: process.env.LLM_MODE || 'off'
+        mode: process.env.LLM_MODE || 'fallback',
+        llm: { ready: keyStatus.ok, reason: keyStatus.reason || null, model: MODEL },
+        envfiles: loadedEnvFiles, // helpful to verify the right files are read
     });
 });
 
@@ -246,9 +254,16 @@ app.use((error, req, res, next) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
     console.log(`🚀 Chat service running on port ${PORT}`);
     console.log(`🔍 LLM Mode: ${process.env.LLM_MODE || 'off'}`);
     console.log(`🌐 CORS Origin: ${process.env.FRONTEND_ORIGIN || '*'}`);
     console.log(`📊 Health check: http://localhost:${PORT}/healthz`);
+    
+    // Environment diagnostics
+    console.log("[env] loaded:", loadedEnvFiles);
+    console.log(`[llm] model=${MODEL} key=${mask(API_KEY)} status=${keyStatus.reason || "ok"}`);
+    
+    // Set LLM status for health endpoint
+    llmStatus = keyStatus;
 });
