@@ -5,6 +5,9 @@
 
 const FIX_API_BASE = process.env.FIX_API_BASE_URL || "http://127.0.0.1:8000";
 
+// Optional bearer token for FastAPI auth
+const FIX_API_TOKEN = process.env.FIX_API_TOKEN;
+
 /**
  * Build a FIX message from fields
  * @param {Object} fields - Tag-value pairs for the FIX message
@@ -12,9 +15,16 @@ const FIX_API_BASE = process.env.FIX_API_BASE_URL || "http://127.0.0.1:8000";
  */
 async function fixBuild(fields) {
     try {
+        const headers = { 'Content-Type': 'application/json' };
+        
+        // Add bearer token if available
+        if (FIX_API_TOKEN) {
+            headers['Authorization'] = `Bearer ${FIX_API_TOKEN}`;
+        }
+        
         const response = await fetch(`${FIX_API_BASE}/fix/build`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers,
             body: JSON.stringify({ fields, delimiter: '|' })
         });
         
@@ -36,9 +46,16 @@ async function fixBuild(fields) {
  */
 async function fixParse(raw) {
     try {
+        const headers = { 'Content-Type': 'application/json' };
+        
+        // Add bearer token if available
+        if (FIX_API_TOKEN) {
+            headers['Authorization'] = `Bearer ${FIX_API_TOKEN}`;
+        }
+        
         const response = await fetch(`${FIX_API_BASE}/fix/parse`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers,
             body: JSON.stringify({ raw_fix: raw, delimiter: '|' })
         });
         
@@ -60,9 +77,16 @@ async function fixParse(raw) {
  */
 async function fixValidate(raw) {
     try {
+        const headers = { 'Content-Type': 'application/json' };
+        
+        // Add bearer token if available
+        if (FIX_API_TOKEN) {
+            headers['Authorization'] = `Bearer ${FIX_API_TOKEN}`;
+        }
+        
         const response = await fetch(`${FIX_API_BASE}/fix/validate`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers,
             body: JSON.stringify({ raw_fix: raw, delimiter: '|' })
         });
         
@@ -84,9 +108,16 @@ async function fixValidate(raw) {
  */
 async function fixExplain(raw) {
     try {
+        const headers = { 'Content-Type': 'application/json' };
+        
+        // Add bearer token if available
+        if (FIX_API_TOKEN) {
+            headers['Authorization'] = `Bearer ${FIX_API_TOKEN}`;
+        }
+        
         const response = await fetch(`${FIX_API_BASE}/fix/explain`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers,
             body: JSON.stringify({ raw_fix: raw, delimiter: '|' })
         });
         
@@ -108,7 +139,16 @@ async function fixExplain(raw) {
  */
 async function fixLookup(tag) {
     try {
-        const response = await fetch(`${FIX_API_BASE}/fix/lookup?tag=${tag}&fix_version=4.4`);
+        const headers = {};
+        
+        // Add bearer token if available
+        if (FIX_API_TOKEN) {
+            headers['Authorization'] = `Bearer ${FIX_API_TOKEN}`;
+        }
+        
+        const response = await fetch(`${FIX_API_BASE}/fix/lookup?tag=${tag}&fix_version=4.4`, {
+            headers
+        });
         
         if (!response.ok) {
             const error = await response.json();

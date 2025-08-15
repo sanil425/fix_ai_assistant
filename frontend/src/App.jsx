@@ -1,8 +1,9 @@
-/** quick note: chat page with placeholder replies + the FIX toolbar at the bottom. no AI calls at all. */
+/** quick note: legacy FIX frontend with integrated chat dock. keeps all existing UI intact. */
 import { useEffect, useState } from "react";
 import Sidebar from "./components/Sidebar.jsx";
 import ChatPage from "./pages/ChatPage.jsx";
 import BottomToolbar from "./components/BottomToolbar";
+import ChatDock from "./components/ChatDock";
 import "./styles/design.css";
 import "./styles/bottom-toolbar.css";
 
@@ -12,6 +13,7 @@ export default function App() {
   const [currentId, setCurrentId] = useState(null);
   const [prefill, setPrefill] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
   
   useEffect(() => { localStorage.setItem("fixVersion", version); }, [version]); // persist version choice
 
@@ -137,6 +139,22 @@ export default function App() {
             <div style={{ opacity: .7, fontSize: 14 }}>FIX Demo</div>
             <div className="right">
               <span className="text-zinc-400 text-sm">FIX Builder</span>
+              {/* Chat button added to existing toolbar */}
+              <button 
+                onClick={() => setChatOpen(true)} 
+                title="Open FIX Chat"
+                style={{ 
+                  marginLeft: "12px", 
+                  padding: "6px 12px", 
+                  background: "#1f2937", 
+                  color: "white", 
+                  border: "1px solid #374151", 
+                  borderRadius: "6px",
+                  fontSize: "14px"
+                }}
+              >
+                Chat
+              </button>
             </div>
           </div>
 
@@ -152,6 +170,13 @@ export default function App() {
           </div>
         </div>
       </div>
+
+      {/* Chat dock overlay - mounted at the end so it overlays everything */}
+      <ChatDock 
+        open={chatOpen} 
+        onClose={() => setChatOpen(false)} 
+        versionProp={version}
+      />
     </div>
   );
 }

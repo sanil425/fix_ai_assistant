@@ -8,9 +8,15 @@
     "build": "cd frontend && npm run build",
     "lint": "cd frontend && npm run lint",
     "preview": "cd frontend && npm run preview",
-    "chat:run": "node chat/runner.js"
+    "chat:run": "node chat/runner.js",
+    "chat:server": "node server/chat_server.js",
+    "chat:dev": "CHAT_PORT=8787 node server/chat_server.js"
   },
   "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^4.21.2",
+    "openai": "^5.12.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-markdown": "^10.1.0",

@@ -248,6 +248,9 @@ async function runBuildFlowWithConfirm(sessionId, utterance) {
     }
 }
 
+// Export LLM mode for configuration
+export const LLM_MODE = process.env.LLM_MODE || 'always';
+
 export {
     runBuildFlow,
     runParseFlow,

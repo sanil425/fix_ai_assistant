@@ -161,3 +161,75 @@ This demonstrates the complete confirmation flow:
 - Node.js 18+ (uses `globalThis.fetch`)
 - No external packages required
 - Framework-agnostic design for easy porting
+
+## Running the Chat Service
+
+The chat service provides an HTTP API endpoint for frontend integration.
+
+### Prerequisites
+
+1. **Start FIX API** (backend):
+```bash
+uvicorn backend.api:app --reload --port 8000
+```
+
+2. **Start chat service**:
+```bash
+npm run chat:dev
+```
+
+### Configuration
+
+Set these environment variables in your `.env` file:
+- `OPENAI_API_KEY`: Your OpenAI API key
+- `FIX_API_BASE_URL`: FIX API endpoint (default: http://127.0.0.1:8000)
+- `LLM_MODE`: LLM mode (always/fallback/off)
+- `FRONTEND_ORIGIN`: Frontend origin for CORS (default: *)
+- `CHAT_PORT`: Chat service port (default: 8787)
+
+### API Endpoints
+
+#### Health Check
+```bash
+curl http://127.0.0.1:8787/healthz
+# Returns: { "ok": true, "mode": "always" }
+```
+
+#### Chat Message
+```bash
+curl -s -X POST http://127.0.0.1:8787/chat \
+  -H "content-type: application/json" \
+  -d '{"session_id":"local","message":"buy 100 aapl limit at 187.5 id t1"}'
+```
+
+#### Confirmation
+```bash
+curl -s -X POST http://127.0.0.1:8787/chat \
+  -H "content-type: application/json" \
+  -d '{"session_id":"local","message":"yes"}'
+```
+
+#### Field Lookup
+```bash
+curl -s -X POST http://127.0.0.1:8787/chat \
+  -H "content-type: application/json" \
+  -d '{"session_id":"local","message":"what is tag 38"}'
+```
+
+### Response Format
+
+```json
+{
+  "session_id": "sess_1234567890_abc123",
+  "intent": "build",
+  "reply_style": "confirm",
+  "result": { /* flow result object */ },
+  "narration": { "text": "human summary" },
+  "llm_mode": "always"
+}
+```
+
+### Security Notes
+
+- Set `FRONTEND_ORIGIN` to your dev host (e.g., http://localhost:5173) to tighten CORS
+- Optional: Set `FIX_API_TOKEN` for FastAPI bearer token authentication

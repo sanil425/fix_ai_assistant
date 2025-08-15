@@ -30,21 +30,49 @@ function extractNOS(input) {
         fields['38'] = qtyMatch[1];
     }
     
-    // Extract symbol (55) - uppercase 1-5 letters after "in/for/" or standalone
-    const symbolPatterns = [
-        /(?:in|for)\s+([a-z]{1,5})\b/i,
-        /\b([a-z]{1,5})\b/i
-    ];
+    // Extract symbol (55) - prioritize stock-like symbols
+    const stockSymbols = ['AAPL', 'TSLA', 'MSFT', 'GOOGL', 'AMZN', 'META', 'NVDA', 'NFLX', 'SPY', 'QQQ'];
+    let foundSymbol = false;
     
-    for (const pattern of symbolPatterns) {
-        const match = text.match(pattern);
-        if (match && /^[a-z]{1,5}$/i.test(match[1])) {
-            // Check if it's not a common word
-            const symbol = match[1].toUpperCase();
-            const commonWords = ['the', 'and', 'for', 'buy', 'sell', 'new', 'limit', 'market', 'order', 'price', 'at', 'id'];
-            if (!commonWords.includes(symbol.toLowerCase())) {
+    // First, look for exact stock symbol matches
+    for (const stock of stockSymbols) {
+        if (text.toLowerCase().includes(stock.toLowerCase())) {
+            fields['55'] = stock;
+            foundSymbol = true;
+            break;
+        }
+    }
+    
+    if (!foundSymbol) {
+        // Look for uppercase stock symbols
+        const symbolMatch = text.match(/\b([A-Z]{1,5})\b/);
+        if (symbolMatch) {
+            const symbol = symbolMatch[1];
+            const commonWords = ['THE', 'AND', 'FOR', 'BUY', 'SELL', 'NEW', 'LIMIT', 'MARKET', 'ORDER', 'PRICE', 'AT', 'ID'];
+            if (!commonWords.includes(symbol)) {
                 fields['55'] = symbol;
-                break;
+                foundSymbol = true;
+            }
+        }
+    }
+    
+    if (!foundSymbol) {
+        // Fallback: look for lowercase symbols and convert
+        const symbolPatterns = [
+            /(?:in|for)\s+([a-z]{1,5})\b/i,
+            /\b([a-z]{1,5})\b/i
+        ];
+        
+        for (const pattern of symbolPatterns) {
+            const match = text.match(pattern);
+            if (match && /^[a-z]{1,5}$/i.test(match[1])) {
+                // Check if it's not a common word
+                const symbol = match[1].toUpperCase();
+                const commonWords = ['the', 'and', 'for', 'buy', 'sell', 'new', 'limit', 'market', 'order', 'price', 'at', 'id', 't1'];
+                if (!commonWords.includes(symbol.toLowerCase())) {
+                    fields['55'] = symbol;
+                    break;
+                }
             }
         }
     }
