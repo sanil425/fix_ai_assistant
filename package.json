@@ -7,7 +7,8 @@
     "dev": "cd frontend && npm run dev",
     "build": "cd frontend && npm run build",
     "lint": "cd frontend && npm run lint",
-    "preview": "cd frontend && npm run preview"
+    "preview": "cd frontend && npm run preview",
+    "chat:run": "node chat/runner.js"
   },
   "dependencies": {
     "react": "^19.1.1",
