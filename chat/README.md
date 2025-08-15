@@ -20,14 +20,14 @@ Minimal, framework-agnostic chat adapter layer that parses user text and calls t
 
 ### Basic Command
 ```bash
-node chat/runner.js "<utterance>"
+node chat/runner.js [--session <id>] "<utterance>"
 ```
 
 ### Examples
 
 #### Build a NewOrderSingle
 ```bash
-# Complete order
+# Complete order (goes to confirmation)
 node chat/runner.js "build a limit buy 100 AAPL at 187.5, id TEST1"
 
 # Missing price (will prompt for info)
@@ -35,6 +35,31 @@ node chat/runner.js "build a limit buy 100 AAPL"
 
 # Market order
 node chat/runner.js "create market sell 50 TSLA"
+```
+
+#### Confirmation Loop
+```bash
+# Start building an order
+node chat/runner.js --session x "build a limit buy 100 AAPL at 187.5, id TEST1"
+# Returns: { "type": "confirm", "summary": "NewOrderSingle: Buy(1) 100 AAPL, Limit(2) 187.50, ClOrdID=TEST1" }
+
+# Confirm the order
+node chat/runner.js --session x "yes"
+# Returns: { "type": "built", "raw_fix": "8=FIX.4.4|9=...|35=D|...|10=...", "valid": true }
+
+# Edit fields before confirming
+node chat/runner.js --session y "build a limit buy 100 AAPL"
+# Returns: { "type": "need_info", "missing": ["44"], "prompt": "Please provide: price (required for limit orders)" }
+
+node chat/runner.js --session y "price 187.5"
+# Returns: { "type": "confirm", "summary": "NewOrderSingle: Buy(1) 100 AAPL, Limit(2) 187.50, ClOrdID=AUTO-..." }
+
+node chat/runner.js --session y "id TEST9"
+# Returns: { "type": "confirm", "summary": "NewOrderSingle: Buy(1) 100 AAPL, Limit(2) 187.50, ClOrdID=TEST9" }
+
+# Cancel the order
+node chat/runner.js --session y "cancel"
+# Returns: { "type": "cancelled" }
 ```
 
 #### Parse FIX Messages
@@ -94,6 +119,42 @@ node chat/runner.js "build a limit buy 100 AAPL at 187.50"
 - **slots.js**: Slot extraction for NewOrderSingle commands
 - **flows.js**: Flow orchestration and API coordination
 - **runner.js**: CLI interface and main entry point
+- **session.js**: Ephemeral session store with 30-minute expiration
+- **confirm.js**: Confirmation logic and user edit parsing
+
+## Sessions
+
+The chat adapter uses in-memory sessions to maintain state during order building:
+
+- **Session ID**: Use `--session <id>` to specify a session (default: "local")
+- **Expiration**: Sessions automatically expire after 30 minutes of inactivity
+- **State**: Sessions store pending order fields and confirmation stage
+- **Isolation**: Different session IDs maintain separate order contexts
+
+**Note**: Sessions are in-memory and only persist within a single process. For CLI usage, each `node` command runs in a separate process, so sessions are not shared between different CLI calls. The session management is designed for use within chat frameworks or web applications where the same process handles multiple user interactions.
+
+## Confirmation Flow
+
+1. **Initial Build**: User provides order details → system extracts fields
+2. **Confirmation**: System shows summary and waits for user confirmation
+3. **Edits**: User can modify fields before confirming
+4. **Execution**: User confirms → system builds and validates FIX message
+5. **Cleanup**: Session is cleared after successful build or cancellation
+
+## Testing the Confirmation Loop
+
+To test the confirmation loop in a single process, use the test script:
+
+```bash
+node chat/test_confirm.js
+```
+
+This demonstrates the complete confirmation flow:
+1. Build initial order → confirmation prompt
+2. Confirm order → FIX message built
+3. Start new order → confirmation prompt
+4. Edit fields → updated confirmation
+5. Confirm edited order → FIX message built
 
 ## Dependencies
 

@@ -11,7 +11,8 @@ import {
     runParseFlow,
     runExplainFlow,
     runValidateFlow,
-    runLookupFlow
+    runLookupFlow,
+    runBuildFlowWithConfirm
 } from './flows.js';
 
 /**
@@ -25,12 +26,38 @@ function extractTag(input) {
 }
 
 /**
+ * Parse command line arguments
+ * @returns {Object} { sessionId, input }
+ */
+function parseArgs() {
+    const args = process.argv.slice(2);
+    let sessionId = 'local';
+    let input = '';
+    
+    for (let i = 0; i < args.length; i++) {
+        if (args[i] === '--session' && i + 1 < args.length) {
+            sessionId = args[i + 1];
+            i++; // Skip the session value
+        } else if (!input) {
+            input = args[i];
+        }
+    }
+    
+    return { sessionId, input };
+}
+
+/**
  * Main runner function
+ * @param {string} sessionId - Session identifier
  * @param {string} input - User input string
  */
-async function run(input) {
+async function run(sessionId, input) {
     if (!input || input.trim() === '') {
-        console.error('Usage: node chat/runner.js "<utterance>"');
+        console.error('Usage: node chat/runner.js [--session <id>] "<utterance>"');
+        console.error('Examples:');
+        console.error('  node chat/runner.js "build a limit buy 100 AAPL at 187.5"');
+        console.error('  node chat/runner.js --session x "yes"');
+        console.error('  node chat/runner.js --session y "price 187.5"');
         process.exit(1);
     }
     
@@ -39,8 +66,17 @@ async function run(input) {
         
         switch (intent) {
             case 'build':
-                const buildResult = await runBuildFlow(input);
+                const buildResult = await runBuildFlowWithConfirm(sessionId, input);
                 console.log(JSON.stringify(buildResult, null, 2));
+                
+                // Add instructions for confirmation if needed
+                if (buildResult.type === 'confirm') {
+                    console.log('\n--- Instructions ---');
+                    console.log('To confirm: node chat/runner.js --session', sessionId, '"yes"');
+                    console.log('To edit: node chat/runner.js --session', sessionId, '"price 187.5"');
+                    console.log('To cancel: node chat/runner.js --session', sessionId, '"cancel"');
+                    console.log('------------------');
+                }
                 break;
                 
             case 'parse':
@@ -91,8 +127,8 @@ async function run(input) {
 
 // Run if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-    const input = process.argv[2];
-    run(input);
+    const { sessionId, input } = parseArgs();
+    run(sessionId, input);
 }
 
 export { run };

@@ -39,6 +39,12 @@ function detectIntent(input) {
         return 'build';
     }
     
+    // Confirmation responses should also route to build flow
+    const confirmWords = ['yes', 'y', 'ok', 'okay', 'confirm', 'proceed', 'go', 'submit'];
+    if (confirmWords.includes(text)) {
+        return 'build';
+    }
+    
     return 'unknown';
 }
 

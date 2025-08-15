@@ -106,4 +106,20 @@ function extractNOS(input) {
     return { fields, missing };
 }
 
-export { extractNOS };
+/**
+ * Summarize NewOrderSingle fields in human-readable format
+ * @param {Object} fields - FIX fields
+ * @returns {string} One-line summary
+ */
+function summarizeNOS(fields) {
+    const side = fields['54'] === '1' ? 'Buy(1)' : fields['54'] === '2' ? 'Sell(2)' : 'Unknown';
+    const qty = fields['38'] || 'Unknown';
+    const symbol = fields['55'] || 'Unknown';
+    const ordType = fields['40'] === '1' ? 'Market(1)' : fields['40'] === '2' ? 'Limit(2)' : 'Unknown';
+    const price = fields['44'] ? ` ${fields['44']}` : '';
+    const clOrdId = fields['11'] || 'Unknown';
+    
+    return `NewOrderSingle: ${side} ${qty} ${symbol}, ${ordType}${price}, ClOrdID=${clOrdId}`;
+}
+
+export { extractNOS, summarizeNOS };
